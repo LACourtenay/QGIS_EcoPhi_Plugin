@@ -63,6 +63,7 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         
         self.krigging_model = None
         self.la2004 = None
+        self.original_phi = None
         self.phi = None
         self.latitude = None
         self.longitude = None
@@ -359,6 +360,7 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.sin_phi = np.sin(self.phi)
         self.cos_phi = np.cos(self.phi)
+        self.original_phi = self.phi.copy()
 
     def transformPhiData(self):
 
@@ -369,8 +371,13 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.checkRadians.isChecked():
 
             self.phi = np.radians(self.phi)
-            self.sin_phi = np.sin(self.phi)
-            self.cos_phi = np.cos(self.phi)
+
+        else:
+
+            self.phi = self.original_phi.copy()
+
+        self.sin_phi = np.sin(self.phi)
+        self.cos_phi = np.cos(self.phi)
 
     def setName(self):
 
