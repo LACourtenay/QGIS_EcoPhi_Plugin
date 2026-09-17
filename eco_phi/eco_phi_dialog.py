@@ -41,6 +41,7 @@ from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import QgsProject, QgsWkbTypes, QgsMapLayerType, QgsCoordinateReferenceSystem, QgsCoordinateTransform
 from qgis.core import QgsRasterLayer
+from qgis.PyQt.QtGui import QPixmap
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(
@@ -71,6 +72,16 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         self.activateCalculate = False
         self.pointLayer = None
         self.outputName = None
+
+        self.plugin_dir = os.path.dirname(os.path.abspath(__file__))
+        self.normal_image = os.path.join(
+            self.plugin_dir,
+            "Background Graphic.png"
+        )
+        self.processing_image = os.path.join(
+            self.plugin_dir,
+            "Background Graphic Processing.png"
+        )
 
         self.model_function = None
 
@@ -237,6 +248,8 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         self.BtnInfo.clicked.connect(self.show_info)
         self.BtnClose.clicked.connect(self.close)
 
+        #self.debug_function()
+
     def check_numeric(self):
 
         contents = self.lineEditsSpacing.text()
@@ -379,6 +392,9 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         if layer is None:
             return
 
+        self.EcoPhiLogo.setPixmap(QPixmap(self.processing_image))
+        QtWidgets.QApplication.processEvents()
+
         self.window = gpd.GeoDataFrame.from_features(
             layer.getFeatures(),
             crs=layer.crs().authid()
@@ -401,6 +417,8 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         points = gpd.GeoSeries([Point(x, y) for x, y in zip(self.long_flat, self.lat_flat)], crs="EPSG:4326")
         window_union = self.window.union_all()
         self.inside_mask = points.within(window_union).values
+
+        self.EcoPhiLogo.setPixmap(QPixmap(self.normal_image))
 
     def activate_krigging_tab(self):
 
@@ -659,7 +677,7 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
             self,
             "Select LA2004 solutions file",
             "",
-            "Text files (*.txt);;All files (*)"
+            "All files (*);;Text files (*.txt)"
         )
 
         if not filepath:
@@ -883,8 +901,11 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def compute(self):
 
+        self.EcoPhiLogo.setPixmap(QPixmap(self.processing_image))
+        QtWidgets.QApplication.processEvents()
         self.perform_predictions()
         self.createRaster()
+        self.EcoPhiLogo.setPixmap(QPixmap(self.normal_image))
 
     def createRaster(self):
 
@@ -1065,7 +1086,36 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         QMessageBox.information(
             self,
             "EcoPhi — Information",
-            "xxx"
+            (
+                "EcoPhi is a plugin developed by L.A. Courtenay and is protected" +
+                " under a GNU Affero General Public License v.3.0; Copyright (C) 2026 Lloyd Courtenay\n\n" +
+                "This QGIS plugin was developed for generating spatial climate rasters, with kriging-based interpolation and" +
+                " tools for reconstructing past climatic conditions using orbital parameters.\n\n"
+                "Analyses conducted that led to the creation of this software were done using the La2004 solution for orbital parameters" +
+                ", however, the user can specify another solution if necessary." + 
+                "\n\nLaskar et al. (2004) A long-term numerical solution for the insolation quantities of the Earth. Astronomy and Astrophysics. 428:261-285\n\n" +
+                "For trouble shooting, the official" +
+                " GitHub page contains instructions on how to use this plugin effectively\n\n" +
+                "https://github.com/LACourtenay/QGIS_EcologicalProfileBuilder_Plugin/" +
+                "\n\nOtherwise do not hesitate to contact the creator at ladc1995@gmail.com"
+                "\n\nDeveloper: Lloyd Austin Courtenay (U. Bordeaux)" +
+                "\nSpecial Thanks: Juha Saarinen (U. Helsinki)" +
+                "\nSpecial Thanks: Antoine Souron (U. Bordeaux)" +
+                "\nThe Afrique and Evodibio teams of the U. Bordeaux"
+            )
+        )
+
+    def debug_function(self):
+
+        text = (
+            "You made it this far!\n\n" +
+            f"Values: {self.plugin_dir}"
+        )
+
+        QMessageBox.information(
+            self,
+            "Debug",
+            text
         )
 
 def load_la2004(filepath):
