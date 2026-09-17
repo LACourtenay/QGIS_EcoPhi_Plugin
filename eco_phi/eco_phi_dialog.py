@@ -379,6 +379,8 @@ class EcoPhiDialog(QtWidgets.QDialog, FORM_CLASS):
         self.sin_phi = np.sin(self.phi)
         self.cos_phi = np.cos(self.phi)
 
+        self.update_variogram_plot()
+
     def setName(self):
 
         self.outputName = self.lineEditOutputName.text()
